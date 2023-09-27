@@ -1,15 +1,66 @@
 import pic from "../assets/Paystack-mark-white-twitter.png";
 import { BsWalletFill } from "react-icons/bs";
 import { AiOutlineSafety } from "react-icons/ai";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import * as yup from "yup";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { donateMoney, donateMoneyWallet } from "../Api/Paystack";
+import Swal from "sweetalert2";
 
 const checkout = () => {
+  // const {id} = useParams()
+  const model = yup.object({
+    email: yup.string().required(),
+    note: yup.string().required(),
+    name: yup.string().required(),
+  });
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(model),
+  });
+
+  const onSubmit = handleSubmit(async (res) => {
+    donateMoneyWallet({
+      email: res.email,
+      note: res.note,
+      name: res.name,
+    }).then(() => {
+      if (res) {
+        Swal.fire({
+          icon: "success",
+          title: "Payment",
+          text: "payment successful",
+          timerProgressBar: true,
+          timer: 3000,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Payment",
+          text: "payment unsuccessful",
+          timerProgressBar: true,
+          timer: 3000,
+        });
+      }
+    });
+  });
+
   const change = (numb: number) => {
     const w = numb.toString();
     const x = w.split(".");
     x[0] = x[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
     return x.join(".");
+  };
+  const [toggle, setToggle] = useState<boolean>(false);
+
+  const onToggle = () => {
+    setToggle(!toggle);
   };
 
   const validateInput = (e: any) => {
@@ -21,12 +72,23 @@ const checkout = () => {
 
   const [state, setState] = useState<number>(0);
   const [changer, setChanger] = useState<any>();
+  const [stateUrl, setStateUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (stateUrl === "") {
+      return;
+    } else {
+      window.location.assign(stateUrl);
+    }
+  }, [stateUrl]);
+
+  console.log(stateUrl)
 
   return (
-    <div className="w-full bg-[#FBF8F6] flex items-center justify-center ">
+    <div className="w-full bg-[#FBF8F6] flex items-center justify-center small:bg-white">
       <div
-        className="w-[600px] min-h-[400px] rounded-3xl bg-white p-3 mt-[50px] mb-[30px
-        ]"
+        className="w-[600px] min-h-[400px] rounded-3xl bg-white p-3 mt-[50px] mb-[40px] small:w-[100%]
+        small:rounded-none small:m-0"
         style={{
           boxShadow:
             "rgba(255, 255, 255, 1)2px 2px 0px -14px, rgba(0, 0, 0, 0.3) 2px 2px 0px -14px",
@@ -37,7 +99,7 @@ const checkout = () => {
           <img
             src=""
             alt=""
-            className="w-[150px] h-[100px] rounded-md border object-cover"
+            className="w-[150px] h-[100px] rounded-md border object-cover small:hidden"
           />
           <div className="ml-[10px] flex  justify-center flex-col">
             <div className=" text-[17px]">
@@ -55,8 +117,10 @@ const checkout = () => {
           <div className="font-bold">Enter your donation</div>
           <div className="w-full h-[80px] pl-[10px]  pr-[10px] border rounded-md outline-none mt-[5px] flex items-center">
             <div className="flex flex-col">
-              <div className="font-bold text-[20px]">$</div>
-              <div className="font-bold text-[20px]">USD</div>
+              <div className="font-bold text-[20px] small:text-[17px]">₦</div>
+              <div className="font-bold text-[18px] small:text-[16px]">
+                NAIRA
+              </div>
             </div>
             <input
               type="text"
@@ -68,7 +132,7 @@ const checkout = () => {
                 setState(e.target.value);
               }}
             />
-            <div className="font-bold text-[30px] ">
+            <div className="font-bold text-[30px] small:text-[20px]">
               {" "}
               <span className="mb-[10px]"> .</span>00
             </div>
@@ -89,6 +153,9 @@ const checkout = () => {
                 onChange={(e: any) => {
                   setChanger(e.target.value);
                 }}
+                onClick={() => {
+                  setToggle(false);
+                }}
               />
               <img src={pic} alt="" className="w-[30px] h-[30px] ml-[20px]" />
               <div className="text-[20px] font-normal ml-[20px]">Paystack</div>
@@ -103,6 +170,9 @@ const checkout = () => {
                 onChange={(e: any) => {
                   setChanger(e.target.value);
                 }}
+                onClick={() => {
+                  onToggle();
+                }}
               />
               <BsWalletFill className="text-[30px] ml-[20px]" />
               <div className="text-[20px] font-normal ml-[20px]">Wallet</div>
@@ -110,33 +180,60 @@ const checkout = () => {
           </div>
         </div>
 
-        {/* <select name="" id="" >
-          <option value="" className="w-full">
-          <div className="flex items-center w-full h-[90px] border-b pl-[30px] hover:cursor-pointer duration-300 ">
+        {/* form */}
+        {toggle ? (
+          <form onSubmit={onSubmit}>
+            <div>
+              <div className="text-[18px] font-medium small:text-[15px]">
+                name
+              </div>
               <input
-                type="radio"
-                className="hover:cursor-pointer"
-                onChange={(e: any) => {
-                  setChanger(e.target.value);
-                }}
+                type="text"
+                placeholder="enter your name"
+                className="w-full h-[40px] border rounded-md outline-none pl-[10px]"
+                {...register("name")}
               />
-              <img src={pic} alt="" className="w-[30px] h-[30px] ml-[20px]" />
-              <div className="text-[20px] font-normal ml-[20px]">Paystack</div>
+              {errors.name && (
+                <div className="text-[12px] text-red-500">enter this field</div>
+              )}
             </div>
-          </option>
-          <option value="">
-            wallet
-          </option>
-        </select> */}
-
+            <div className="mt-[10px]">
+              <div className="text-[18px] font-medium small:text-[15px]">
+                Email
+              </div>
+              <input
+                type="email"
+                placeholder="enter your email address"
+                className="w-full h-[40px] border rounded-md outline-none pl-[10px]"
+                {...register("email")}
+              />
+              {errors.email && (
+                <div className="text-[12px] text-red-500">enter this field</div>
+              )}
+            </div>
+            <div className="mt-[10px]">
+              <div className="text-[18px] font-medium small:text-[15px]">
+                note
+              </div>
+              <textarea
+                placeholder="write how you feel about this"
+                className="w-full h-[40px] border rounded-md outline-none pl-[10px]"
+                {...register("note")}
+              />
+              {errors.note && (
+                <div className="text-[12px] text-red-500">enter this field</div>
+              )}
+            </div>
+          </form>
+        ) : null}
         <hr className="mt-[30px]" />
 
         <div className="font-bold text-[20px] mt-[20px]">Your donation</div>
         <div className="flex justify-between mt-[20px] items-center">
           <div className="font-medium text-[17px]">Your donation</div>
-          <div className="flex justify-end font-medium text-[17px]">
+          <div className="flex justify-end font-bold text-[20px] ">
             {" "}
-            ${change(state)}.00
+            ₦{change(state)}.00
           </div>
         </div>
         {/* button */}
@@ -145,6 +242,11 @@ const checkout = () => {
             <button
               className="w-full h-[60px] rounded-md hover:cursor-pointer
         duration-300 bg-[dodgerblue] text-white text-[20px] flex justify-center items-center"
+              onClick={() => {
+                donateMoney("").then((res:any) => {
+                  setStateUrl(res);
+                });
+              }}
             >
               Paystack
             </button>
@@ -153,6 +255,7 @@ const checkout = () => {
             <button
               className="w-full h-[60px] rounded-md hover:cursor-pointer mt-1
           duration-300 bg-black text-white text-[20px] flex justify-center items-center"
+              type="submit"
             >
               Wallet
             </button>
@@ -200,15 +303,3 @@ const checkout = () => {
 };
 
 export default checkout;
-
-{
-  /* <input
-  type="number"
-  id="myNumberInput"
-  name="myNumberInput"
-  min="1"
-  max="100"
-  step="1"
-  class="appearance-none w-24 px-3 py-2 rounded-md border border-gray-300 focus:border-indigo-500"
-> */
-}
