@@ -75,6 +75,7 @@ const checkout = () => {
   const [changer, setChanger] = useState<any>();
   const [stateUrl, setStateUrl] = useState<string>("");
   const [showing, setShowing] = useState<boolean>(false);
+  const [mail, setMail] = useState<string | any>("");
 
   useEffect(() => {
     if (stateUrl === "") {
@@ -84,7 +85,7 @@ const checkout = () => {
     }
   }, [stateUrl]);
 
-
+  // const updatedState:any = { state, mail }
   return (
     <>
       {showing && <Loader />}
@@ -139,6 +140,22 @@ const checkout = () => {
                 {" "}
                 <span className="mb-[10px]"> .</span>00
               </div>
+            </div>
+
+            <div className="mt-[10px]">
+              <div className="text-[18px] font-medium small:text-[15px]">
+                Email
+              </div>
+              <input
+                type="text"
+                // onInput={setMail}
+                placeholder="enter your email address"
+                className="w-full h-[40px] border rounded-md outline-none pl-[10px]"
+                onChange={(e: any) => {
+                  setMail(e.target.value);
+                }}
+              />
+              {errors.email && <div>error</div>}
             </div>
           </div>
 
@@ -256,9 +273,10 @@ const checkout = () => {
                 onClick={() => {
                   setShowing(true);
                   donateMoney(state)
-                    .then((res: any) => {
+                    .then((res) => {
+                      console.log(res)
                       setStateUrl(res.authorization_url);
-                      console.log(res.authorization_url)
+                      console.log(res.authorization_url);
                     })
                     .then(() => {
                       setShowing(false);

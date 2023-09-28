@@ -2,17 +2,19 @@ import axios from "axios"
 
 const url:string ="http://localhost:5555/api"
 
-export const donateMoney =async(data:any)=>{
-try {
-    return await axios.post(`${url}/pay-with-PayStack`, {amount:data}).then((res:any)=>{
+export const donateMoney = async (data:any) => {
+    try {
+      return await axios.post(`${url}/pay-with-PayStack`, {amount:data}).then((res:any)=>{
+        
+        console.log(res.data.data.data)
         return res.data.data.data
-        // console.log("showing",res.data.data)
-    })
-} catch (error) {
-console.log(error)
-}
-}
-
+      })
+    } catch (error) {
+      console.error('Error in donateMoney:', error);
+    }
+  };
+  
+  
 export const donateMoneyWallet =async(data:any)=>{
     try {
         return await axios.post(`${url}/pay-with-wallet`, data).then((res:any)=>{
