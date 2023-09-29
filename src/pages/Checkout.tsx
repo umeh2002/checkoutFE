@@ -8,6 +8,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { donateMoney, donateMoneyWallet } from "../Api/Paystack";
 import Swal from "sweetalert2";
 import Loader from "../pages/Loader";
+import { Navigate } from "react-router-dom";
 
 const checkout = () => {
   // const {id} = useParams()
@@ -15,6 +16,7 @@ const checkout = () => {
     email: yup.string().required(),
     note: yup.string().required(),
     name: yup.string().required(),
+    amount: yup.string().required(),
   });
 
   const {
@@ -25,13 +27,16 @@ const checkout = () => {
     resolver: yupResolver(model),
   });
 
-  const onSubmit = handleSubmit(async (res) => {
+  const onSubmit = handleSubmit(async (data) => {
     donateMoneyWallet({
-      email: res.email,
-      note: res.note,
-      name: res.name,
+      email: data.email,
+      note: data.note,
+      name: data.name,
+      amount: data.amount,
+
+      // const {email, note, name} = data
     }).then(() => {
-      if (res) {
+      if (data) {
         Swal.fire({
           icon: "success",
           title: "Payment",
@@ -75,7 +80,9 @@ const checkout = () => {
   const [changer, setChanger] = useState<any>();
   const [stateUrl, setStateUrl] = useState<string>("");
   const [showing, setShowing] = useState<boolean>(false);
-  const [mail, setMail] = useState<string | any>("");
+  const [email, setEmail] = useState<string | any>("");
+  const [note, setNote] = useState<string | any>("");
+  const [name, setName] = useState<string | any>("");
 
   useEffect(() => {
     if (stateUrl === "") {
@@ -85,7 +92,8 @@ const checkout = () => {
     }
   }, [stateUrl]);
 
-  // const updatedState:any = { state, mail }
+  const amount = parseInt(state);
+
   return (
     <>
       {showing && <Loader />}
@@ -129,12 +137,14 @@ const checkout = () => {
               <input
                 type="text"
                 onInput={validateInput}
+                value={state}
                 maxLength={7}
                 className="h-[100%] w-[85%]  pl-[20px] outline-none text-[30px] font-bold text-right appearance-none focus:border-indigo-500
         "
                 onChange={(e: any) => {
                   setState(e.target.value);
                 }}
+                // {...register("amount")}
               />
               <div className="font-bold text-[30px] small:text-[20px]">
                 {" "}
@@ -147,15 +157,17 @@ const checkout = () => {
                 Email
               </div>
               <input
-                type="text"
-                // onInput={setMail}
-                placeholder="enter your email address"
+                placeholder="put email"
                 className="w-full h-[40px] border rounded-md outline-none pl-[10px]"
+                // {...register("note")}
+                value={email}
                 onChange={(e: any) => {
-                  setMail(e.target.value);
+                  setEmail(e.target.value);
                 }}
               />
-              {errors.email && <div>error</div>}
+              {errors.email?.message && (
+                <div className="text-[12px] text-red-500">enter this field</div>
+              )}
             </div>
           </div>
 
@@ -210,28 +222,15 @@ const checkout = () => {
                   name
                 </div>
                 <input
-                  type="text"
-                  placeholder="enter your name"
+                  placeholder="write how you feel about this"
                   className="w-full h-[40px] border rounded-md outline-none pl-[10px]"
-                  {...register("name")}
+                  // {...register("note")}
+                  value={name}
+                  onChange={(e: any) => {
+                    setName(e.target.value);
+                  }}
                 />
-                {errors.name && (
-                  <div className="text-[12px] text-red-500">
-                    enter this field
-                  </div>
-                )}
-              </div>
-              <div className="mt-[10px]">
-                <div className="text-[18px] font-medium small:text-[15px]">
-                  Email
-                </div>
-                <input
-                  type="email"
-                  placeholder="enter your email address"
-                  className="w-full h-[40px] border rounded-md outline-none pl-[10px]"
-                  {...register("email")}
-                />
-                {errors.email && (
+                {errors.name?.message && (
                   <div className="text-[12px] text-red-500">
                     enter this field
                   </div>
@@ -244,9 +243,13 @@ const checkout = () => {
                 <textarea
                   placeholder="write how you feel about this"
                   className="w-full h-[40px] border rounded-md outline-none pl-[10px]"
-                  {...register("note")}
+                  // {...register("note")}
+                  value={note}
+                  onChange={(e: any) => {
+                    setNote(e.target.value);
+                  }}
                 />
-                {errors.note && (
+                {errors.note?.message && (
                   <div className="text-[12px] text-red-500">
                     enter this field
                   </div>
@@ -272,11 +275,9 @@ const checkout = () => {
         duration-300 bg-[dodgerblue] text-white text-[20px] flex justify-center items-center"
                 onClick={() => {
                   setShowing(true);
-                  donateMoney(state)
+                  donateMoney({ amount, email })
                     .then((res) => {
-                      console.log(res)
                       setStateUrl(res.authorization_url);
-                      console.log(res.authorization_url);
                     })
                     .then(() => {
                       setShowing(false);
@@ -290,7 +291,30 @@ const checkout = () => {
               <button
                 className="w-full h-[60px] rounded-md hover:cursor-pointer mt-1
           duration-300 bg-black text-white text-[20px] flex justify-center items-center"
-                type="submit"
+                onClick={() => {
+                  donateMoneyWallet({ amount, email, note, name }).then(
+                    (res: any) => {
+                      if (res) {
+                        Swal.fire({
+                          icon: "success",
+                          title: "Payment",
+                          text: "payment successful",
+                          timerProgressBar: true,
+                          timer: 3000,
+                        });
+                      } else {
+                        Swal.fire({
+                          icon: "error",
+                          title: "Payment",
+                          text: "payment unsuccessful",
+                          timerProgressBar: true,
+                          timer: 3000,
+                        });
+                      }
+                    }
+                  );
+                }}
+                type="reset"
               >
                 Wallet
               </button>
