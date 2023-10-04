@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const url: string = "http://localhost:5555/api";
+const url: string = "https://checkout-zt02.onrender.com/api";
 
 export const donateMoney = async (data: any) => {
   try {

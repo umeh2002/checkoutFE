@@ -8,7 +8,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { donateMoney, donateMoneyWallet } from "../Api/Paystack";
 import Swal from "sweetalert2";
 import Loader from "../pages/Loader";
-import { Navigate } from "react-router-dom";
 
 const checkout = () => {
   // const {id} = useParams()
@@ -294,6 +293,7 @@ const checkout = () => {
                 onClick={() => {
                   donateMoneyWallet({ amount, email, note, name }).then(
                     (res: any) => {
+                      console.log(res)
                       if (res) {
                         Swal.fire({
                           icon: "success",
